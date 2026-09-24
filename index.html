@@ -60,6 +60,42 @@
     color: var(--ink);
   }
 
+  /* ---- Overall progress ---- */
+  .overall-progress {
+    margin-bottom: 20px;
+  }
+  .overall-progress .op-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .overall-progress .op-days {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .overall-progress .op-pct {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .overall-progress .op-track {
+    height: 10px;
+    border-radius: 6px;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    overflow: hidden;
+  }
+  .overall-progress .op-fill {
+    height: 100%;
+    border-radius: 6px 0 0 6px;
+    background: linear-gradient(90deg, var(--run), var(--push));
+    transition: width 0.4s ease;
+  }
+
   /* ---- Tabs ---- */
   .tabs {
     display: flex;
@@ -308,6 +344,14 @@
   <div class="head">
     <h1>Training Log</h1>
     <span class="range">Sep 20, 2026 – Feb 20, 2027</span>
+  </div>
+
+  <div class="overall-progress">
+    <div class="op-label">
+      <span class="op-days" id="op-days"></span>
+      <span class="op-pct" id="op-pct"></span>
+    </div>
+    <div class="op-track"><div class="op-fill" id="op-fill" style="width:0%"></div></div>
   </div>
 
   <div class="tabs">
@@ -714,6 +758,21 @@
   buildMonth(2026, 11);
   buildMonth(2027, 0);
   buildMonth(2027, 1);
+
+  // ---------- Overall progress bar ----------
+  (function renderOverallProgress() {
+    const msPerDay = 86400000;
+    const totalDays = Math.round((END - START) / msPerDay) + 1; // inclusive of both ends
+    const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    let daysDone = Math.round((todayMidnight - START) / msPerDay) + 1;
+    daysDone = Math.max(0, Math.min(daysDone, totalDays));
+    const pct = Math.round((daysDone / totalDays) * 100);
+
+    document.getElementById("op-days").textContent = daysDone + " / " + totalDays + " days";
+    document.getElementById("op-pct").textContent = pct + "%";
+    document.getElementById("op-fill").style.width = pct + "%";
+  })();
 
   loadData();
   refreshDayVisuals();
