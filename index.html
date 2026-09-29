@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Training Log</title>
+<style>
+  :root {
+    --bg: #F7F7F4;
+    --card: #FFFFFF;
+    --card-line: #E3E2DC;
+    --ink: #1C1D22;
+    --ink-dim: #6E7078;
+    --ink-faint: #A1A3AA;
+
+    --push: #F0862A;
+    --pull: #2F7BE0;
+    --rest: #9497A1;
+    --run:  #1FA366;
+    --weight: #8257E5;
+  }
+
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+    min-height: 100vh;
+  }
+
+  /* ---- Header ---- */
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .head h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .head .range {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ---- Overall progress ---- */
+  .overall-progress {
+    margin-bottom: 20px;
+  }
+  .overall-progress .op-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .overall-progress .op-days {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .overall-progress .op-pct {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .overall-progress .op-track {
+    height: 10px;
+    border-radius: 6px;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    overflow: hidden;
+  }
+  .overall-progress .op-fill {
+    height: 100%;
+    border-radius: 6px 0 0 6px;
+    background: linear-gradient(90deg, var(--run), var(--push));
+    transition: width 0.4s ease;
+  }
+
+  /* ---- Tabs ---- */
+  .tabs {
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 12px;
+    padding: 3px;
+    margin-bottom: 20px;
+    position: sticky;
+    top: 10px;
+    z-index: 10;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 9px 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
+  }
+  .tab.active {
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ---- Legend ---- */
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot.push { background: var(--push); }
+  .dot.pull { background: var(--pull); }
+  .dot.rest { background: var(--rest); }
+  .dot.run  { background: var(--run); }
+
+  /* ---- Month block ---- */
+  .month { margin-bottom: 26px; }
+  .month-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .month-head h2 { font-size: 18px; font-weight: 700; margin: 0; }
+  .month-progress { font-size: 20px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 6px;
+  }
+  .weekday-row span {
+    text-align: center;
+    font-size: 10px;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 8px;
+  }
+
+  .day-cell { display: flex; align-items: center; justify-content: center; }
+
+  .day {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.6px solid transparent;
+    color: var(--ink);
+    background: transparent;
+    transition: transform 0.08s ease;
+    position: relative;
+  }
+  .day:active { transform: scale(0.9); }
+
+  .day.push { border-color: var(--push); }
+  .day.pull { border-color: var(--pull); }
+  .day.rest { border-color: var(--rest); }
+  .day.run  { border-color: var(--run); }
+
+  .day.done.push { background: var(--push); border-color: var(--push); color: #FFFFFF; }
+  .day.done.pull { background: var(--pull); border-color: var(--pull); color: #FFFFFF; }
+  .day.done.rest { background: var(--rest); border-color: var(--rest); color: #FFFFFF; }
+  .day.done.run  { background: var(--run);  border-color: var(--run);  color: #FFFFFF; }
+
+  .day.missed {
+    background: #A61B1B;
+    border-color: #A61B1B;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .day.empty { visibility: hidden; }
+
+  .day.today::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+
+  .foot-note { text-align: center; font-size: 11.5px; color: var(--ink-faint); margin-top: 22px; }
+
+  /* ---- Weight page ---- */
+  .weight-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .weight-form input {
+    background: var(--bg);
+    border: 1px solid var(--card-line);
+    border-radius: 9px;
+    color: var(--ink);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .weight-form input[type="date"] { flex: 1.1; }
+  .weight-form input[type="number"] { flex: 0.9; }
+  .weight-form button {
+    background: var(--weight);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .weight-form button:active { transform: scale(0.97); }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 16px;
+    padding: 16px 14px 10px;
+    margin-bottom: 18px;
+  }
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .chart-head .title { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .chart-head .stat { font-size: 12px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+  .chart-legend { display: flex; gap: 14px; margin-bottom: 4px; }
+  .chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-dim); }
+  .chart-swatch { width: 14px; height: 0; border-top: 2px solid; display: inline-block; }
+  .chart-swatch.actual { border-top-color: var(--weight); border-top-style: solid; }
+  .chart-swatch.target { border-top-color: var(--ink-faint); border-top-style: dashed; }
+  .chart-empty {
+    font-size: 13px;
+    color: var(--ink-faint);
+    text-align: center;
+    padding: 30px 10px;
+  }
+
+  .weight-list { display: flex; flex-direction: column; gap: 8px; }
+  .weight-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 12px;
+  }
+  .weight-row .wr-date { font-size: 13px; color: var(--ink-dim); }
+  .weight-row .wr-val { font-size: 15px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .weight-row .wr-del {
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 6px;
+  }
+  .weight-row .wr-mid { display: flex; align-items: center; gap: 10px; }
+  .wr-input-wrap { display: flex; align-items: center; gap: 6px; }
+  .wr-input {
+    width: 64px;
+    background: var(--bg);
+    border: 1px solid var(--card-line);
+    border-radius: 8px;
+    color: var(--ink);
+    padding: 7px 9px;
+    font-size: 14px;
+    font-family: inherit;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .wr-input:focus { outline: none; border-color: var(--weight); }
+  .wr-unit { font-size: 12px; color: var(--ink-faint); width: 16px; }
+
+  .weight-form input { min-width: 0; }
+  .chart-swatch.daily { width: 6px; height: 6px; border: none; border-radius: 50%; background: var(--weight); opacity: 0.3; }
+
+  .week-list { display: flex; flex-direction: column; gap: 8px; }
+  .week-card {
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .week-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .week-head:focus-visible { outline: 2px solid var(--weight); outline-offset: -2px; border-radius: 12px; }
+  .wk-name { font-size: 14px; font-weight: 700; }
+  .wk-range { font-size: 12px; color: var(--ink-dim); margin-top: 1px; }
+  .wk-right { text-align: right; }
+  .wk-avg { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .wk-avg.none { color: var(--ink-faint); font-weight: 600; font-size: 14px; }
+  .wk-meta { font-size: 11.5px; color: var(--ink-faint); margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .wk-meta .up { color: #D0482F; font-weight: 600; }
+  .wk-meta .down { color: var(--run); font-weight: 600; }
+  .week-days { display: none; padding: 2px 14px 12px; border-top: 1px solid var(--card-line); }
+  .week-card.open .week-days { display: block; }
+  .day-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+  }
+  .day-row + .day-row { border-top: 1px dashed var(--card-line); }
+  .day-row .dr-date { font-size: 13px; color: var(--ink-dim); }
+  .day-row.is-today .dr-date { color: var(--weight); font-weight: 700; }
+  .day-row.future { opacity: 0.45; }
+
+  /* ---- Food page ---- */
+  .food-target {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    padding: 4px 2px 18px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--card-line);
+  }
+  .food-target .ft-item { display: flex; align-items: baseline; gap: 5px; }
+  .food-target .ft-num {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .food-target .ft-unit { font-size: 13px; font-weight: 600; color: var(--ink-dim); }
+  .food-target .ft-note { margin-left: auto; font-size: 12px; color: var(--ink-faint); }
+
+  .day-plan { position: relative; padding-left: 26px; margin-top: 18px; }
+  .day-plan::before {
+    content: "";
+    position: absolute;
+    left: 6px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: var(--card-line);
+    border-radius: 1px;
+  }
+  .meal { position: relative; margin-bottom: 22px; }
+  .meal:last-child { margin-bottom: 0; }
+  .meal::before {
+    content: "";
+    position: absolute;
+    left: -26px; top: 3px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 3px solid var(--meal-color);
+    box-sizing: border-box;
+  }
+  .meal.breakfast { --meal-color: var(--push); }
+  .meal.lunch     { --meal-color: var(--run); }
+  .meal.evening   { --meal-color: var(--weight); }
+  .meal.dinner    { --meal-color: var(--pull); }
+
+  .meal-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 9px;
+    line-height: 20px;
+  }
+  .meal-choices {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    gap: 0;
+  }
+  .meal-choices.single { grid-template-columns: 1fr; }
+  .choice {
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 12px;
+    padding: 12px 13px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+  }
+  .choice-or {
+    align-self: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    background: var(--bg);
+    border: 1px solid var(--card-line);
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 -6px;
+    position: relative;
+    z-index: 1;
+  }
+  .meal-with {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 5px 10px 5px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--meal-color) 12%, var(--card));
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .meal-with .plus {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--meal-color);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="head">
+    <h1>Training Log</h1>
+    <span class="range">Sep 20, 2026 – Feb 20, 2027</span>
+  </div>
+
+  <div class="overall-progress">
+    <div class="op-label">
+      <span class="op-days" id="op-days"></span>
+      <span class="op-pct" id="op-pct"></span>
+    </div>
+    <div class="op-track"><div class="op-fill" id="op-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab" data-page="food">Food</div>
+    <div class="tab active" data-page="workouts">Workouts</div>
+    <div class="tab" data-page="weight">Weight</div>
+  </div>
+
+  <div id="sync-note" style="font-size:11px; color:var(--ink-faint); text-align:right; margin-bottom:14px; cursor:pointer; user-select:none;">
+    Saved on this device ✓ &nbsp;·&nbsp; <span id="sync-toggle" style="text-decoration:underline; color:var(--ink-dim);">move data to another device</span>
+  </div>
+  <div id="sync-panel" style="display:none; font-size:11.5px; color:var(--ink-dim); background:var(--card); border:1px solid var(--card-line); border-radius:12px; padding:12px; margin-bottom:14px;">
+    Your data lives in this browser only. To carry it over to your laptop (or a fresh browser), copy it here and paste it there.
+    <span style="display:block; margin-top:8px;">
+      <button id="backup-copy" style="background:var(--weight); color:#FFFFFF; border:none; border-radius:7px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer; margin-right:6px;">Copy my data</button>
+      <button id="backup-paste" style="background:none; color:var(--weight); border:1px solid var(--weight); border-radius:7px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">Paste data here</button>
+    </span>
+    <textarea id="backup-box" style="display:none; width:100%; margin-top:8px; background:var(--bg); color:var(--ink); border:1px solid var(--card-line); border-radius:7px; font-size:11px; padding:8px; box-sizing:border-box;" rows="3"></textarea>
+  </div>
+
+  <!-- FOOD PAGE -->
+  <div class="page" id="food">
+    <div class="food-target">
+      <div class="ft-item"><span class="ft-num">1800</span><span class="ft-unit">kcal</span></div>
+      <div class="ft-item"><span class="ft-num">90g</span><span class="ft-unit">protein</span></div>
+      <span class="ft-note">every day</span>
+    </div>
+
+    <div class="day-plan">
+      <div class="meal breakfast">
+        <h3 class="meal-title">Breakfast</h3>
+        <div class="meal-choices">
+          <div class="choice">2 bread + egg / paneer bhurji</div>
+          <div class="choice-or">or</div>
+          <div class="choice">Soy paratha + curd</div>
+        </div>
+        <span class="meal-with"><span class="plus">+</span>Coffee</span>
+      </div>
+
+      <div class="meal lunch">
+        <h3 class="meal-title">Lunch</h3>
+        <div class="meal-choices">
+          <div class="choice">2 bread + egg / paneer bhurji</div>
+          <div class="choice-or">or</div>
+          <div class="choice">Rice bowl + curd</div>
+        </div>
+        <span class="meal-with"><span class="plus">+</span>Amul protein shake</span>
+      </div>
+
+      <div class="meal evening">
+        <h3 class="meal-title">Evening</h3>
+        <div class="meal-choices single">
+          <div class="choice">Coffee</div>
+        </div>
+      </div>
+
+      <div class="meal dinner">
+        <h3 class="meal-title">Dinner</h3>
+        <div class="meal-choices single">
+          <div class="choice">Grilled chicken + curd</div>
+        </div>
+        <span class="meal-with"><span class="plus">+</span>Chai</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKOUTS PAGE -->
+  <div class="page active" id="workouts">
+    <div class="legend">
+      <div class="legend-item"><span class="dot push"></span>Push</div>
+      <div class="legend-item"><span class="dot pull"></span>Pull</div>
+      <div class="legend-item"><span class="dot run"></span>Run · 45min+</div>
+    </div>
+    <div id="months"></div>
+    <div class="foot-note">Tap a date to mark it done. Tap again to undo.</div>
+  </div>
+
+  <!-- WEIGHT PAGE -->
+  <div class="page" id="weight">
+    <div class="weight-form">
+      <input type="date" id="log-date" aria-label="Date">
+      <input type="number" id="log-weight" step="0.1" min="0" inputmode="decimal" placeholder="kg" aria-label="Weight in kg">
+      <button id="log-save">Save</button>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head">
+        <span class="title">Weekly average</span>
+        <span class="stat" id="weight-stat"></span>
+      </div>
+      <div class="chart-legend">
+        <span class="chart-legend-item"><span class="chart-swatch actual"></span>Weekly avg</span>
+        <span class="chart-legend-item"><span class="chart-swatch daily"></span>Daily</span>
+        <span class="chart-legend-item"><span class="chart-swatch target"></span>Target</span>
+      </div>
+      <div id="chart-wrap"></div>
+    </div>
+
+    <div class="week-list" id="weight-list"></div>
+    <div class="foot-note">Weigh in every morning. Daily numbers swing, so progress is judged on the weekly average (weeks run Sunday to Saturday). Tap a week to see or edit its days.</div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const STORE_KEY = "tracker-data";
+  const START = new Date(2026, 8, 20);  // Sun Sep 20 2026
+  const END   = new Date(2027, 1, 20);  // Sat Feb 20 2027
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const WEEKDAY_LETTERS = ["M","T","W","T","F","S","S"]; // Mon-first
+
+  // Mon-Fri=run Sat=push Sun=pull
+  const TYPE_BY_DOW = { 1:"run", 2:"run", 3:"run", 4:"run", 5:"run", 6:"push", 0:"pull" };
+
+  let data = { workouts: {}, weights: {} };
+
+  function fmtKey(d) {
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function isSameDay(a,b) {
+    return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  }
+  function mondayIndex(date) {
+    const dow = date.getDay();
+    return (dow + 6) % 7;
+  }
+  function fmtDateShort(key) {
+    const [y,m,d] = key.split("-").map(Number);
+    return MONTH_NAMES[m-1] + " " + d;
+  }
+
+  // ---------- Storage (plain localStorage — persists on this device/browser) ----------
+  function loadData() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        data.workouts = parsed.workouts || {};
+        data.weights = parsed.weights || {};
+      }
+    } catch (e) {
+      data = { workouts: {}, weights: {} };
+    }
+  }
+
+  function saveData() {
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    } catch (e) {
+      // storage full or blocked (e.g. private browsing) — data still works for this session
+    }
+  }
+
+  // ---------- Workouts ----------
+  const monthsContainer = document.getElementById("months");
+  const today = new Date();
+
+  function buildMonth(year, monthIdx) {
+    const monthEl = document.createElement("div");
+    monthEl.className = "month";
+
+    const headEl = document.createElement("div");
+    headEl.className = "month-head";
+    const h2 = document.createElement("h2");
+    h2.textContent = MONTH_NAMES[monthIdx] + " " + year;
+    const progress = document.createElement("span");
+    progress.className = "month-progress";
+    progress.id = "progress-" + year + "-" + monthIdx;
+    headEl.appendChild(h2);
+    headEl.appendChild(progress);
+    monthEl.appendChild(headEl);
+
+    const wdRow = document.createElement("div");
+    wdRow.className = "weekday-row";
+    WEEKDAY_LETTERS.forEach(l => {
+      const s = document.createElement("span");
+      s.textContent = l;
+      wdRow.appendChild(s);
+    });
+    monthEl.appendChild(wdRow);
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+
+    const firstOfMonth = new Date(year, monthIdx, 1);
+    const lastOfMonth = new Date(year, monthIdx + 1, 0);
+    const leadingEmpty = mondayIndex(firstOfMonth);
+
+    for (let i = 0; i < leadingEmpty; i++) {
+      const cell = document.createElement("div");
+      cell.className = "day-cell";
+      const empty = document.createElement("div");
+      empty.className = "day empty";
+      cell.appendChild(empty);
+      grid.appendChild(cell);
+    }
+
+    let dateCursor = new Date(firstOfMonth);
+    while (dateCursor <= lastOfMonth) {
+      const cell = document.createElement("div");
+      cell.className = "day-cell";
+
+      if (dateCursor >= START && dateCursor <= END) {
+        const dayEl = document.createElement("div");
+        const type = TYPE_BY_DOW[dateCursor.getDay()];
+        dayEl.className = "day " + type;
+        dayEl.textContent = dateCursor.getDate();
+        dayEl.dataset.dayNum = String(dateCursor.getDate());
+        if (isSameDay(dateCursor, today)) dayEl.classList.add("today");
+
+        const key = fmtKey(dateCursor);
+        dayEl.dataset.key = key;
+        dayEl.addEventListener("click", () => toggleDay(dayEl, key));
+
+        cell.appendChild(dayEl);
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "day empty";
+        cell.appendChild(empty);
+      }
+      grid.appendChild(cell);
+      dateCursor.setDate(dateCursor.getDate() + 1);
+    }
+
+    monthEl.appendChild(grid);
+    monthsContainer.appendChild(monthEl);
+  }
+
+  function refreshDayVisuals() {
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    document.querySelectorAll(".day[data-key]").forEach(el => {
+      const key = el.dataset.key;
+      const isDone = !!data.workouts[key];
+      const [y, m, d] = key.split("-").map(Number);
+      const cellDate = new Date(y, m - 1, d);
+      const isPast = cellDate < todayMidnight;
+
+      if (isDone) {
+        el.classList.add("done");
+        el.classList.remove("missed");
+        el.textContent = el.dataset.dayNum;
+      } else if (isPast) {
+        el.classList.remove("done");
+        el.classList.add("missed");
+        el.textContent = "✕";
+      } else {
+        el.classList.remove("done", "missed");
+        el.textContent = el.dataset.dayNum;
+      }
+    });
+  }
+
+  function updateAllProgress() {
+    const seen = {};
+    document.querySelectorAll(".day[data-key]").forEach(el => {
+      const key = el.dataset.key;
+      const [y, m] = key.split("-");
+      const id = "progress-" + parseInt(y,10) + "-" + (parseInt(m,10)-1);
+      if (!seen[id]) seen[id] = { done: 0, total: 0 };
+      seen[id].total++;
+      if (data.workouts[key]) seen[id].done++;
+    });
+    Object.keys(seen).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = seen[id].done + " / " + seen[id].total;
+    });
+  }
+
+  function toggleDay(dayEl, key) {
+    const willBeDone = !data.workouts[key];
+    if (willBeDone) data.workouts[key] = true;
+    else delete data.workouts[key];
+    refreshDayVisuals();
+    updateAllProgress();
+    saveData();
+  }
+
+  // ---------- Weight (daily weigh-ins, judged on weekly averages) ----------
+  const weightListEl = document.getElementById("weight-list");
+  const weightStatEl = document.getElementById("weight-stat");
+  const chartWrap = document.getElementById("chart-wrap");
+  const logDate = document.getElementById("log-date");
+  const logWeight = document.getElementById("log-weight");
+  const logSave = document.getElementById("log-save");
+
+  const MS_DAY = 86400000;
+  const TOTAL_DAYS = Math.round((END - START) / MS_DAY) + 1; // 154
+  const WEEK_COUNT = Math.ceil(TOTAL_DAYS / 7);              // 22 (Sun-Sat weeks)
+
+  function dayIdx(key) {
+    const [y, m, d] = key.split("-").map(Number);
+    return Math.round((new Date(y, m - 1, d) - START) / MS_DAY);
+  }
+  function keyAt(idx) {
+    const d = new Date(START);
+    d.setDate(d.getDate() + idx);
+    return fmtKey(d);
+  }
+
+  // Target line: 89.00 kg on Sep 20, -0.75 kg per week, straight through to Feb 20 2027
+  const START_TARGET = 89.0;
+  const WEEKLY_DROP = 0.75;
+  function targetAtDay(idx) { return START_TARGET - (idx / 7) * WEEKLY_DROP; }
+
+  function weekDays(w) {
+    const out = [];
+    for (let i = w * 7; i < Math.min(w * 7 + 7, TOTAL_DAYS); i++) out.push(i);
+    return out;
+  }
+  // Target for a week = target at the middle of its logged days (or mid-week if none)
+  function weekStats(w) {
+    const vals = [];
+    const idxs = [];
+    weekDays(w).forEach(i => {
+      const v = data.weights[keyAt(i)];
+      if (v !== undefined) { vals.push(v); idxs.push(i); }
+    });
+    if (!vals.length) return null;
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const midIdx = idxs.reduce((a, b) => a + b, 0) / idxs.length;
+    return { avg, count: vals.length, midIdx, target: targetAtDay(midIdx) };
+  }
+
+  const todayKey = fmtKey(new Date());
+  const todayIdx = dayIdx(todayKey);
+  const currentWeek = Math.max(0, Math.min(WEEK_COUNT - 1, Math.floor(todayIdx / 7)));
+  const openWeeks = new Set([currentWeek]);
+
+  function commitWeight(key, rawVal) {
+    const trimmed = String(rawVal ?? "").trim();
+    if (trimmed === "") {
+      delete data.weights[key];
+    } else {
+      const num = parseFloat(trimmed);
+      if (isNaN(num) || num <= 0) return false;
+      data.weights[key] = Math.round(num * 100) / 100;
+    }
+    saveData();
+    renderWeightList();
+    renderChart();
+    return true;
+  }
+
+  // Quick log (defaults to today, clamped to the plan)
+  const clampedToday = Math.max(0, Math.min(TOTAL_DAYS - 1, todayIdx));
+  logDate.min = fmtKey(START);
+  logDate.max = fmtKey(END);
+  logDate.value = keyAt(clampedToday);
+  function syncLogField() {
+    const v = data.weights[logDate.value];
+    logWeight.value = v !== undefined ? v : "";
+  }
+  logDate.addEventListener("change", syncLogField);
+  logSave.addEventListener("click", () => {
+    const key = logDate.value;
+    if (!key || dayIdx(key) < 0 || dayIdx(key) >= TOTAL_DAYS) return;
+    if (logWeight.value.trim() === "") return;
+    if (commitWeight(key, logWeight.value)) {
+      logSave.textContent = "Saved ✓";
+      setTimeout(() => { logSave.textContent = "Save"; }, 1400);
+    }
+  });
+  logWeight.addEventListener("keydown", e => { if (e.key === "Enter") logSave.click(); });
+
+  function renderWeightList() {
+    weightListEl.innerHTML = "";
+    // Newest week first, only weeks that have started
+    for (let w = currentWeek; w >= 0; w--) {
+      const days = weekDays(w);
+      const st = weekStats(w);
+      const prev = w > 0 ? weekStats(w - 1) : null;
+
+      const card = document.createElement("div");
+      card.className = "week-card" + (openWeeks.has(w) ? " open" : "");
+
+      const head = document.createElement("button");
+      head.className = "week-head";
+      head.setAttribute("aria-expanded", openWeeks.has(w) ? "true" : "false");
+      const range = fmtDateShort(keyAt(days[0])) + " – " + fmtDateShort(keyAt(days[days.length - 1]));
+
+      let metaHtml;
+      if (st) {
+        const vsTarget = st.avg - st.target;
+        const tgtStr = Math.abs(vsTarget) < 0.05 ? "on target"
+          : (vsTarget > 0 ? "+" : "") + vsTarget.toFixed(1) + " vs target";
+        let changeStr = "";
+        if (prev) {
+          const ch = st.avg - prev.avg;
+          const cls = ch > 0.04 ? "up" : (ch < -0.04 ? "down" : "");
+          changeStr = '<span class="' + cls + '">' + (ch > 0 ? "+" : "") + ch.toFixed(2) + " kg</span>, ";
+        }
+        metaHtml = changeStr + st.count + "/" + days.length + " days, " + tgtStr;
+      } else {
+        metaHtml = "no weigh-ins yet";
+      }
+
+      head.innerHTML =
+        '<div><div class="wk-name">Week ' + (w + 1) + '</div><div class="wk-range">' + range + '</div></div>' +
+        '<div class="wk-right"><div class="wk-avg' + (st ? "" : " none") + '">' + (st ? st.avg.toFixed(2) + " kg" : "–") + '</div>' +
+        '<div class="wk-meta">' + metaHtml + '</div></div>';
+      head.addEventListener("click", () => {
+        if (openWeeks.has(w)) openWeeks.delete(w); else openWeeks.add(w);
+        card.classList.toggle("open");
+        head.setAttribute("aria-expanded", card.classList.contains("open") ? "true" : "false");
+      });
+
+      const body = document.createElement("div");
+      body.className = "week-days";
+      days.forEach(i => {
+        const key = keyAt(i);
+        const row = document.createElement("div");
+        const isFuture = i > todayIdx;
+        row.className = "day-row" + (key === todayKey ? " is-today" : "") + (isFuture ? " future" : "");
+
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "dr-date";
+        const [ky, km, kd] = key.split("-").map(Number);
+        const wd = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(ky, km - 1, kd).getDay()];
+        dateSpan.textContent = wd + ", " + fmtDateShort(key) + (key === todayKey ? " (today)" : "");
+
+        const inputWrap = document.createElement("div");
+        inputWrap.className = "wr-input-wrap";
+        const input = document.createElement("input");
+        input.type = "number";
+        input.step = "0.1";
+        input.min = "0";
+        input.inputMode = "decimal";
+        input.className = "wr-input";
+        input.disabled = isFuture;
+        input.setAttribute("aria-label", "Weight on " + dateSpan.textContent);
+        if (data.weights[key] !== undefined) input.value = data.weights[key];
+        input.addEventListener("change", () => {
+          commitWeight(key, input.value);
+          if (key === logDate.value) syncLogField();
+        });
+        const unit = document.createElement("span");
+        unit.className = "wr-unit";
+        unit.textContent = "kg";
+        inputWrap.appendChild(input);
+        inputWrap.appendChild(unit);
+
+        row.appendChild(dateSpan);
+        row.appendChild(inputWrap);
+        body.appendChild(row);
+      });
+
+      card.appendChild(head);
+      card.appendChild(body);
+      weightListEl.appendChild(card);
+    }
+    syncLogField();
+  }
+
+  function renderChart() {
+    chartWrap.innerHTML = "";
+
+    const weeks = [];
+    for (let w = 0; w < WEEK_COUNT; w++) {
+      const st = weekStats(w);
+      if (st) weeks.push({ w, ...st });
+    }
+
+    // Stat: latest weekly average vs target
+    if (!weeks.length) {
+      weightStatEl.textContent = "Target starts at " + START_TARGET.toFixed(2) + " kg";
+    } else {
+      const last = weeks[weeks.length - 1];
+      const diff = last.avg - last.target;
+      weightStatEl.textContent = "Avg " + last.avg.toFixed(1) + " kg, " + (Math.abs(diff) < 0.05
+        ? "on target"
+        : (diff > 0 ? "+" : "") + diff.toFixed(1) + " vs target");
+    }
+
+    // Axis range: target line, widened if logged weights fall outside it
+    const tStart = targetAtDay(0), tEnd = targetAtDay(TOTAL_DAYS - 1);
+    const allVals = Object.keys(data.weights)
+      .filter(k => { const i = dayIdx(k); return i >= 0 && i < TOTAL_DAYS; })
+      .map(k => data.weights[k]);
+    const yMin = Math.min(tEnd, ...allVals);
+    const yMax = Math.max(tStart, ...allVals);
+    const pad = Math.max((yMax - yMin) * 0.08, 0.6);
+    const yLo = yMin - pad;
+    const yHi = yMax + pad;
+
+    const W = 320, H = 165, marginL = 34, marginR = 10, marginT = 14, marginB = 24;
+    const plotW = W - marginL - marginR;
+    const plotH = H - marginT - marginB;
+
+    function xAt(idx) { return marginL + (idx / (TOTAL_DAYS - 1)) * plotW; }
+    function yAt(v) { return marginT + plotH - ((v - yLo) / (yHi - yLo)) * plotH; }
+
+    const targetPath = "M" + xAt(0).toFixed(1) + "," + yAt(tStart).toFixed(1) +
+      " L" + xAt(TOTAL_DAYS - 1).toFixed(1) + "," + yAt(tEnd).toFixed(1);
+
+    // Faint daily dots
+    let dailyDots = "";
+    Object.keys(data.weights).forEach(k => {
+      const i = dayIdx(k);
+      if (i < 0 || i >= TOTAL_DAYS) return;
+      dailyDots += '<circle cx="' + xAt(i).toFixed(1) + '" cy="' + yAt(data.weights[k]).toFixed(1) + '" r="1.8" fill="var(--weight)" opacity="0.28" />';
+    });
+
+    // Weekly average line, placed at the middle of each week's logged days; breaks across empty weeks
+    let actualPath = "";
+    let actualPoints = "";
+    let prevW = null;
+    weeks.forEach(wk => {
+      const x = xAt(wk.midIdx), y = yAt(wk.avg);
+      actualPath += (prevW !== null && wk.w === prevW + 1 ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1) + " ";
+      actualPoints += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.2" fill="var(--weight)" />';
+      prevW = wk.w;
+    });
+
+    // Y-axis: 4 evenly spaced gridlines + labels
+    const Y_TICKS = 4;
+    let yGrid = "";
+    for (let t = 0; t < Y_TICKS; t++) {
+      const val = yHi - pad - (t / (Y_TICKS - 1)) * (yHi - yLo - 2 * pad);
+      const y = yAt(val);
+      yGrid += `
+        <line x1="${marginL}" y1="${y.toFixed(1)}" x2="${W - marginR}" y2="${y.toFixed(1)}" stroke="#EDECE7" stroke-width="1"/>
+        <text x="${(marginL - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8.5" fill="#8B8D95">${val.toFixed(1)}</text>
+      `;
+    }
+
+    // X-axis: 5 evenly spaced date labels
+    const X_TICKS = 5;
+    let xTicks = "";
+    for (let t = 0; t < X_TICKS; t++) {
+      const idx = Math.round((t / (X_TICKS - 1)) * (TOTAL_DAYS - 1));
+      const x = xAt(idx);
+      const anchor = t === 0 ? "start" : (t === X_TICKS - 1 ? "end" : "middle");
+      xTicks += `
+        <line x1="${x.toFixed(1)}" y1="${marginT + plotH}" x2="${x.toFixed(1)}" y2="${(marginT + plotH + 3).toFixed(1)}" stroke="#C9C8C2" stroke-width="1"/>
+        <text x="${x.toFixed(1)}" y="${H - 6}" text-anchor="${anchor}" font-size="8.5" fill="#8B8D95">${fmtDateShort(keyAt(idx))}</text>
+      `;
+    }
+
+    chartWrap.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
+        ${yGrid}
+        <line x1="${marginL}" y1="${marginT}" x2="${marginL}" y2="${marginT + plotH}" stroke="#D8D7D1" stroke-width="1"/>
+        <line x1="${marginL}" y1="${marginT + plotH}" x2="${W - marginR}" y2="${marginT + plotH}" stroke="#D8D7D1" stroke-width="1"/>
+        <path d="${targetPath}" fill="none" stroke="#A1A3AA" stroke-width="1.6" stroke-dasharray="4 3" stroke-linecap="round"/>
+        ${dailyDots}
+        <path d="${actualPath}" fill="none" stroke="var(--weight)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${actualPoints}
+        ${xTicks}
+      </svg>
+    `;
+  }
+
+  // ---------- Init ----------
+  buildMonth(2026, 8);
+  buildMonth(2026, 9);
+  buildMonth(2026, 10);
+  buildMonth(2026, 11);
+  buildMonth(2027, 0);
+  buildMonth(2027, 1);
+
+  // ---------- Overall progress bar ----------
+  (function renderOverallProgress() {
+    const msPerDay = 86400000;
+    const totalDays = Math.round((END - START) / msPerDay) + 1; // inclusive of both ends
+    const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    let daysDone = Math.round((todayMidnight - START) / msPerDay) + 1;
+    daysDone = Math.max(0, Math.min(daysDone, totalDays));
+    const pct = Math.round((daysDone / totalDays) * 100);
+
+    document.getElementById("op-days").textContent = daysDone + " / " + totalDays + " days";
+    document.getElementById("op-pct").textContent = pct + "%";
+    document.getElementById("op-fill").style.width = pct + "%";
+  })();
+
+  loadData();
+  refreshDayVisuals();
+  updateAllProgress();
+  renderWeightList();
+  renderChart();
+
+  // ---------- Move data between devices (manual export/import) ----------
+  const syncToggle = document.getElementById("sync-toggle");
+  const syncPanel = document.getElementById("sync-panel");
+  syncToggle.addEventListener("click", () => {
+    syncPanel.style.display = syncPanel.style.display === "block" ? "none" : "block";
+  });
+
+  const backupCopyBtn = document.getElementById("backup-copy");
+  const backupPasteBtn = document.getElementById("backup-paste");
+  const backupBox = document.getElementById("backup-box");
+
+  backupCopyBtn.addEventListener("click", () => {
+    backupBox.value = JSON.stringify(data);
+    backupBox.style.display = "block";
+    backupBox.select();
+    try {
+      document.execCommand("copy");
+      backupCopyBtn.textContent = "Copied ✓";
+      setTimeout(() => { backupCopyBtn.textContent = "Copy backup"; }, 1800);
+    } catch (e) {
+      // selection is visible even if auto-copy fails; user can copy manually
+    }
+  });
+
+  backupPasteBtn.addEventListener("click", () => {
+    if (backupBox.style.display === "block" && backupBox.dataset.mode === "restore") {
+      // second click: attempt restore from whatever is in the box
+      try {
+        const parsed = JSON.parse(backupBox.value);
+        data.workouts = parsed.workouts || {};
+        data.weights = parsed.weights || {};
+        refreshDayVisuals();
+        updateAllProgress();
+        renderWeightList();
+        renderChart();
+        backupPasteBtn.textContent = "Restored ✓";
+        setTimeout(() => { backupPasteBtn.textContent = "Restore from backup"; backupBox.style.display = "none"; backupBox.dataset.mode = ""; }, 1500);
+      } catch (e) {
+        backupPasteBtn.textContent = "Couldn't read that — try again";
+        setTimeout(() => { backupPasteBtn.textContent = "Restore from backup"; }, 2000);
+      }
+    } else {
+      backupBox.value = "";
+      backupBox.placeholder = "Paste your backup text here, then tap Restore from backup again.";
+      backupBox.style.display = "block";
+      backupBox.dataset.mode = "restore";
+      backupBox.focus();
+    }
+  });
+
+  // Tabs
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.page).classList.add("active");
+    });
+  });
+})();
+</script>
+</body>
+</html>
