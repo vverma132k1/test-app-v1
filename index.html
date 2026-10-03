@@ -239,49 +239,10 @@
 
   .day.today { box-shadow: 0 0 0 2.5px var(--bg), 0 0 0 4.5px var(--ink); }
 
-  /* ---- Today card ---- */
-  .today-card {
-    background: var(--card);
-    border: 1px solid var(--card-line);
-    border-top: 4px solid var(--cat-color, var(--ink-faint));
-    border-radius: 14px;
-    padding: 14px 16px 16px;
-    margin-bottom: 14px;
-  }
-  .today-card.push, .sched-row.push { --cat-color: var(--push); }
-  .today-card.pull, .sched-row.pull { --cat-color: var(--pull); }
-  .today-card.run,  .sched-row.run  { --cat-color: var(--run); }
-  .tc-date { font-size: 12.5px; color: var(--ink-dim); font-weight: 600; }
-  .tc-focus { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 4px 0 2px; }
-  .tc-muscles { font-size: 13px; color: var(--ink-dim); min-height: 17px; }
-  .tc-blocks { display: flex; gap: 8px; margin-top: 12px; }
-  .tc-block {
-    flex: 1;
-    background: var(--bg);
-    border-radius: 10px;
-    padding: 9px 11px;
-  }
-  .tc-block .tb-time { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .tc-block .tb-what { font-size: 11.5px; color: var(--ink-dim); margin-top: 1px; }
-  .tc-block.off { opacity: 0.45; }
-  .tc-btn {
-    width: 100%;
-    margin-top: 12px;
-    padding: 11px;
-    border-radius: 10px;
-    border: 1.6px solid var(--cat-color);
-    background: transparent;
-    color: var(--ink);
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .tc-btn.done { background: var(--cat-color); color: #FFFFFF; }
-  .tc-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-  .tc-next { font-size: 12px; color: var(--ink-faint); margin-top: 10px; text-align: center; }
-
   /* ---- Weekly schedule ---- */
+  .sched-row.push { --cat-color: var(--push); }
+  .sched-row.pull { --cat-color: var(--pull); }
+  .sched-row.run  { --cat-color: var(--run); }
   .schedule {
     background: var(--card);
     border: 1px solid var(--card-line);
@@ -650,8 +611,6 @@
 
   <!-- WORKOUTS PAGE -->
   <div class="page active" id="workouts">
-    <div class="today-card" id="today-card"></div>
-
     <div class="schedule" id="schedule">
       <div class="sched-title">Every week</div>
     </div>
@@ -876,7 +835,6 @@
     const willBeDone = !data.workouts[key];
     if (willBeDone) data.workouts[key] = true;
     else delete data.workouts[key];
-    renderToday();
     refreshDayVisuals();
     updateAllProgress();
     saveData();
@@ -884,31 +842,6 @@
 
   // ---------- Today card + weekly schedule ----------
   const DOW_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const todayCard = document.getElementById("today-card");
-
-  function renderToday() {
-    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const inPlan = todayMidnight >= START && todayMidnight <= END;
-    const plan = PLAN_BY_DOW[today.getDay()];
-    const key = fmtKey(today);
-    const done = !!data.workouts[key];
-    const tomorrow = PLAN_BY_DOW[(today.getDay() + 1) % 7];
-
-    todayCard.className = "today-card " + plan.cat;
-    todayCard.innerHTML =
-      '<div class="tc-date">Today, ' + DOW_NAMES[today.getDay()] + " " + fmtDateShort(key) + '</div>' +
-      '<div class="tc-focus">' + plan.focus + '</div>' +
-      '<div class="tc-muscles">' + plan.muscles + '</div>' +
-      (inPlan ? '<button class="tc-btn' + (done ? " done" : "") + '" id="tc-btn">' + (done ? "Done ✓" : "Mark today done") + '</button>' : "") +
-      '<div class="tc-next">Tomorrow: ' + tomorrow.focus + '</div>';
-
-    const btn = document.getElementById("tc-btn");
-    if (btn) btn.addEventListener("click", () => {
-      const el = document.querySelector('.day[data-key="' + key + '"]');
-      toggleDay(el, key);
-    });
-  }
-
   (function renderSchedule() {
     const sched = document.getElementById("schedule");
     [1, 2, 3, 4, 5, 6, 0].forEach(dow => {
@@ -1223,7 +1156,6 @@
   loadData();
   refreshDayVisuals();
   updateAllProgress();
-  renderToday();
   renderWeightList();
   renderChart();
 
@@ -1260,7 +1192,6 @@
         data.weights = parsed.weights || {};
         refreshDayVisuals();
         updateAllProgress();
-        renderToday();
         renderWeightList();
         renderChart();
         backupPasteBtn.textContent = "Restored ✓";
