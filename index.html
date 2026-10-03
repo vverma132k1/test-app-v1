@@ -186,7 +186,18 @@
     row-gap: 8px;
   }
 
-  .day-cell { display: flex; align-items: center; justify-content: center; }
+  .day-cell { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 3px; }
+  .day-tag {
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 11px;
+    height: 11px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+  .day-tag.push { color: var(--push); }
+  .day-tag.pull { color: var(--pull); }
+  .day-tag.run  { color: var(--run); }
 
   .day {
     width: 38px;
@@ -226,15 +237,81 @@
 
   .day.empty { visibility: hidden; }
 
-  .day.today::after {
+  .day.today { box-shadow: 0 0 0 2.5px var(--bg), 0 0 0 4.5px var(--ink); }
+
+  /* ---- Today card ---- */
+  .today-card {
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-top: 4px solid var(--cat-color, var(--ink-faint));
+    border-radius: 14px;
+    padding: 14px 16px 16px;
+    margin-bottom: 14px;
+  }
+  .today-card.push, .sched-row.push { --cat-color: var(--push); }
+  .today-card.pull, .sched-row.pull { --cat-color: var(--pull); }
+  .today-card.run,  .sched-row.run  { --cat-color: var(--run); }
+  .tc-date { font-size: 12.5px; color: var(--ink-dim); font-weight: 600; }
+  .tc-focus { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 4px 0 2px; }
+  .tc-muscles { font-size: 13px; color: var(--ink-dim); min-height: 17px; }
+  .tc-blocks { display: flex; gap: 8px; margin-top: 12px; }
+  .tc-block {
+    flex: 1;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 9px 11px;
+  }
+  .tc-block .tb-time { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tc-block .tb-what { font-size: 11.5px; color: var(--ink-dim); margin-top: 1px; }
+  .tc-block.off { opacity: 0.45; }
+  .tc-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    border-radius: 10px;
+    border: 1.6px solid var(--cat-color);
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tc-btn.done { background: var(--cat-color); color: #FFFFFF; }
+  .tc-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .tc-next { font-size: 12px; color: var(--ink-faint); margin-top: 10px; text-align: center; }
+
+  /* ---- Weekly schedule ---- */
+  .schedule {
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 14px;
+    padding: 6px 0;
+    margin-bottom: 22px;
+  }
+  .sched-title { font-size: 13px; font-weight: 700; padding: 8px 16px 6px; }
+  .sched-row {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    position: relative;
+  }
+  .sched-row::before {
     content: "";
     position: absolute;
-    bottom: -6px;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--ink);
+    left: 0; top: 7px; bottom: 7px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--cat-color);
   }
+  .sched-row.is-today { background: color-mix(in srgb, var(--cat-color) 10%, var(--card)); }
+  .sr-day { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); }
+  .sched-row.is-today .sr-day { color: var(--ink); }
+  .sr-focus { font-size: 14px; font-weight: 700; }
+  .sr-muscles { font-size: 11.5px; color: var(--ink-faint); }
+  .sr-time { font-size: 11.5px; color: var(--ink-dim); text-align: right; font-variant-numeric: tabular-nums; }
 
   .foot-note { text-align: center; font-size: 11.5px; color: var(--ink-faint); margin-top: 22px; }
 
@@ -573,13 +650,19 @@
 
   <!-- WORKOUTS PAGE -->
   <div class="page active" id="workouts">
+    <div class="today-card" id="today-card"></div>
+
+    <div class="schedule" id="schedule">
+      <div class="sched-title">Every week</div>
+    </div>
+
     <div class="legend">
-      <div class="legend-item"><span class="dot push"></span>Push</div>
-      <div class="legend-item"><span class="dot pull"></span>Pull</div>
-      <div class="legend-item"><span class="dot run"></span>Run · 45min+</div>
+      <div class="legend-item"><span class="dot push"></span>Chest, shoulders, triceps</div>
+      <div class="legend-item"><span class="dot pull"></span>Back, biceps</div>
+      <div class="legend-item"><span class="dot run"></span>Cardio only</div>
     </div>
     <div id="months"></div>
-    <div class="foot-note">Tap a date to mark it done. Tap again to undo.</div>
+    <div class="foot-note">Tap a date to mark it done, tap again to undo.</div>
   </div>
 
   <!-- WEIGHT PAGE -->
@@ -617,8 +700,18 @@
   const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const WEEKDAY_LETTERS = ["M","T","W","T","F","S","S"]; // Mon-first
 
-  // Mon-Fri=run Sat=push Sun=pull
-  const TYPE_BY_DOW = { 1:"run", 2:"run", 3:"run", 4:"run", 5:"run", 6:"push", 0:"pull" };
+  // Weekly plan. cat drives the color: push = chest/shoulders/triceps, pull = back/biceps, run = cardio only.
+  const PLAN_BY_DOW = {
+    1: { focus: "Chest",               muscles: "",                          tag: "Chest",  cat: "push", lift: 30 },
+    2: { focus: "Biceps",              muscles: "",                          tag: "Bi",     cat: "pull", lift: 30 },
+    3: { focus: "Shoulders + triceps", muscles: "",                          tag: "Sh+Tri", cat: "push", lift: 30 },
+    4: { focus: "Back",                muscles: "",                          tag: "Back",   cat: "pull", lift: 30 },
+    5: { focus: "Cardio only",         muscles: "No lifting today",          tag: "Cardio", cat: "run",  lift: 0  },
+    6: { focus: "Push day",            muscles: "Chest, shoulders, triceps", tag: "Push",   cat: "push", lift: 30 },
+    0: { focus: "Pull day",            muscles: "Back, biceps",              tag: "Pull",   cat: "pull", lift: 30 }
+  };
+  const TYPE_BY_DOW = {};
+  Object.keys(PLAN_BY_DOW).forEach(k => { TYPE_BY_DOW[k] = PLAN_BY_DOW[k].cat; });
 
   let data = { workouts: {}, weights: {} };
 
@@ -720,7 +813,12 @@
         dayEl.dataset.key = key;
         dayEl.addEventListener("click", () => toggleDay(dayEl, key));
 
+        const tag = document.createElement("span");
+        tag.className = "day-tag " + type;
+        tag.textContent = PLAN_BY_DOW[dateCursor.getDay()].tag;
+
         cell.appendChild(dayEl);
+        cell.appendChild(tag);
       } else {
         const empty = document.createElement("div");
         empty.className = "day empty";
@@ -778,10 +876,51 @@
     const willBeDone = !data.workouts[key];
     if (willBeDone) data.workouts[key] = true;
     else delete data.workouts[key];
+    renderToday();
     refreshDayVisuals();
     updateAllProgress();
     saveData();
   }
+
+  // ---------- Today card + weekly schedule ----------
+  const DOW_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const todayCard = document.getElementById("today-card");
+
+  function renderToday() {
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const inPlan = todayMidnight >= START && todayMidnight <= END;
+    const plan = PLAN_BY_DOW[today.getDay()];
+    const key = fmtKey(today);
+    const done = !!data.workouts[key];
+    const tomorrow = PLAN_BY_DOW[(today.getDay() + 1) % 7];
+
+    todayCard.className = "today-card " + plan.cat;
+    todayCard.innerHTML =
+      '<div class="tc-date">Today, ' + DOW_NAMES[today.getDay()] + " " + fmtDateShort(key) + '</div>' +
+      '<div class="tc-focus">' + plan.focus + '</div>' +
+      '<div class="tc-muscles">' + plan.muscles + '</div>' +
+      (inPlan ? '<button class="tc-btn' + (done ? " done" : "") + '" id="tc-btn">' + (done ? "Done ✓" : "Mark today done") + '</button>' : "") +
+      '<div class="tc-next">Tomorrow: ' + tomorrow.focus + '</div>';
+
+    const btn = document.getElementById("tc-btn");
+    if (btn) btn.addEventListener("click", () => {
+      const el = document.querySelector('.day[data-key="' + key + '"]');
+      toggleDay(el, key);
+    });
+  }
+
+  (function renderSchedule() {
+    const sched = document.getElementById("schedule");
+    [1, 2, 3, 4, 5, 6, 0].forEach(dow => {
+      const p = PLAN_BY_DOW[dow];
+      const row = document.createElement("div");
+      row.className = "sched-row " + p.cat + (dow === today.getDay() ? " is-today" : "");
+      row.innerHTML =
+        '<span class="sr-day">' + DOW_NAMES[dow].slice(0, 3) + '</span>' +
+        '<div><div class="sr-focus">' + p.focus + '</div>' + (p.muscles && p.lift ? '<div class="sr-muscles">' + p.muscles + '</div>' : "") + '</div>';
+      sched.appendChild(row);
+    });
+  })();
 
   // ---------- Weight (daily weigh-ins, judged on weekly averages) ----------
   const weightListEl = document.getElementById("weight-list");
@@ -1084,6 +1223,7 @@
   loadData();
   refreshDayVisuals();
   updateAllProgress();
+  renderToday();
   renderWeightList();
   renderChart();
 
@@ -1120,6 +1260,7 @@
         data.weights = parsed.weights || {};
         refreshDayVisuals();
         updateAllProgress();
+        renderToday();
         renderWeightList();
         renderChart();
         backupPasteBtn.textContent = "Restored ✓";
