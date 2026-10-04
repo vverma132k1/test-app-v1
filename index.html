@@ -411,9 +411,6 @@
   .wk-right { text-align: right; }
   .wk-avg { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
   .wk-avg.none { color: var(--ink-faint); font-weight: 600; font-size: 14px; }
-  .wk-meta { font-size: 11.5px; color: var(--ink-faint); margin-top: 1px; font-variant-numeric: tabular-nums; }
-  .wk-meta .up { color: #D0482F; font-weight: 600; }
-  .wk-meta .down { color: var(--run); font-weight: 600; }
   .week-days { display: none; padding: 2px 14px 12px; border-top: 1px solid var(--card-line); }
   .week-card.open .week-days { display: block; }
   .day-row {
@@ -649,7 +646,7 @@
     </div>
 
     <div class="week-list" id="weight-list"></div>
-    <div class="foot-note">Weigh in every morning. Daily numbers swing, so progress is judged on the weekly average (weeks run Sunday to Saturday). Tap a week to see or edit its days.</div>
+    <div class="foot-note">Weigh in every day after coming back from the gym, not in the morning.</div>
   </div>
 
 </div>
@@ -945,7 +942,6 @@
     for (let w = currentWeek; w >= 0; w--) {
       const days = weekDays(w);
       const st = weekStats(w);
-      const prev = w > 0 ? weekStats(w - 1) : null;
 
       const card = document.createElement("div");
       card.className = "week-card" + (openWeeks.has(w) ? " open" : "");
@@ -955,23 +951,9 @@
       head.setAttribute("aria-expanded", openWeeks.has(w) ? "true" : "false");
       const range = fmtDateShort(keyAt(days[0])) + " – " + fmtDateShort(keyAt(days[days.length - 1]));
 
-      let metaHtml;
-      if (st) {
-        let changeStr = "";
-        if (prev) {
-          const ch = st.avg - prev.avg;
-          const cls = ch > 0.04 ? "up" : (ch < -0.04 ? "down" : "");
-          changeStr = '<span class="' + cls + '">' + (ch > 0 ? "+" : "") + ch.toFixed(2) + " kg</span>, ";
-        }
-        metaHtml = changeStr + st.count + "/" + days.length + " days";
-      } else {
-        metaHtml = "no weigh-ins yet";
-      }
-
       head.innerHTML =
         '<div><div class="wk-name">Week ' + (w + 1) + '</div><div class="wk-range">' + range + '</div></div>' +
-        '<div class="wk-right"><div class="wk-avg' + (st ? "" : " none") + '">' + (st ? st.avg.toFixed(2) + " kg" : "–") + '</div>' +
-        '<div class="wk-meta">' + metaHtml + '</div></div>';
+        '<div class="wk-right"><div class="wk-avg' + (st ? "" : " none") + '">' + (st ? st.avg.toFixed(2) + " kg" : "–") + '</div></div>';
       head.addEventListener("click", () => {
         if (openWeeks.has(w)) openWeeks.delete(w); else openWeeks.add(w);
         card.classList.toggle("open");
