@@ -421,6 +421,59 @@
   .day-row.is-today .dr-date { color: var(--weight); font-weight: 700; }
   .day-row.future { opacity: 0.45; }
 
+  /* ---- Food rules ---- */
+  .rules-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 28px 2px 10px;
+  }
+  .rule {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 12px;
+    align-items: start;
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 14px;
+    padding: 13px 14px;
+    margin-bottom: 10px;
+  }
+  .rule-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    font-weight: 800;
+    color: #FFFFFF;
+    background: var(--rule-color);
+  }
+  .rule.ok { --rule-color: var(--push); }
+  .rule.no { --rule-color: #D0482F; }
+  .rule-head { font-size: 15px; font-weight: 800; line-height: 20px; }
+  .rule-sub { font-size: 12.5px; color: var(--ink-dim); margin-top: 3px; line-height: 1.4; }
+  .rule-days { display: flex; gap: 6px; margin-top: 8px; }
+  .rule-days span {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--push) 14%, var(--card));
+    color: var(--push);
+  }
+  .rule-swap {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--run) 13%, var(--card));
+    color: var(--ink);
+  }
+
   /* ---- Food page ---- */
   .food-target {
     display: flex;
@@ -589,7 +642,7 @@
           <div class="choice-or">or</div>
           <div class="choice">Rice bowl + curd</div>
         </div>
-        <span class="meal-with"><span class="plus">+</span>Amul protein shake</span>
+        <span class="meal-with"><span class="plus">+</span>Protein shake</span>
       </div>
 
       <div class="meal evening">
@@ -605,6 +658,41 @@
           <div class="choice">Grilled chicken + curd</div>
         </div>
         <span class="meal-with"><span class="plus">+</span>Chai</span>
+      </div>
+    </div>
+
+    <div class="rules-title">Ground rules</div>
+
+    <div class="rule ok">
+      <div class="rule-icon">2</div>
+      <div>
+        <div class="rule-head">Two cheat meals a week</div>
+        <div class="rule-sub">Replaces that night's dinner. Homemade pasta, kulcha, that kind of thing.</div>
+        <div class="rule-days"><span>Friday night</span><span>Saturday night</span></div>
+      </div>
+    </div>
+
+    <div class="rule no">
+      <div class="rule-icon">✕</div>
+      <div>
+        <div class="rule-head">No alcohol</div>
+        <div class="rule-sub">Off completely for now.</div>
+      </div>
+    </div>
+
+    <div class="rule no">
+      <div class="rule-icon">✕</div>
+      <div>
+        <div class="rule-head">No cigarettes</div>
+      </div>
+    </div>
+
+    <div class="rule no">
+      <div class="rule-icon">✕</div>
+      <div>
+        <div class="rule-head">No chips</div>
+        <div class="rule-sub">Craving something crunchy?</div>
+        <span class="rule-swap">Have roasted chana instead</span>
       </div>
     </div>
   </div>
