@@ -186,18 +186,7 @@
     row-gap: 8px;
   }
 
-  .day-cell { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 3px; }
-  .day-tag {
-    font-size: 9px;
-    font-weight: 600;
-    line-height: 11px;
-    height: 11px;
-    color: var(--ink-faint);
-    white-space: nowrap;
-  }
-  .day-tag.push { color: var(--push); }
-  .day-tag.pull { color: var(--pull); }
-  .day-tag.run  { color: var(--run); }
+  .day-cell { display: flex; align-items: center; justify-content: center; }
 
   .day {
     width: 38px;
@@ -209,7 +198,7 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    border: 1.6px solid transparent;
+    border: 1.6px solid #D8D7D1;
     color: var(--ink);
     background: transparent;
     transition: transform 0.08s ease;
@@ -217,15 +206,7 @@
   }
   .day:active { transform: scale(0.9); }
 
-  .day.push { border-color: var(--push); }
-  .day.pull { border-color: var(--pull); }
-  .day.rest { border-color: var(--rest); }
-  .day.run  { border-color: var(--run); }
-
-  .day.done.push { background: var(--push); border-color: var(--push); color: #FFFFFF; }
-  .day.done.pull { background: var(--pull); border-color: var(--pull); color: #FFFFFF; }
-  .day.done.rest { background: var(--rest); border-color: var(--rest); color: #FFFFFF; }
-  .day.done.run  { background: var(--run);  border-color: var(--run);  color: #FFFFFF; }
+  .day.done { background: var(--run); border-color: var(--run); color: #FFFFFF; }
 
   .day.missed {
     background: #A61B1B;
@@ -250,7 +231,33 @@
     padding: 6px 0;
     margin-bottom: 22px;
   }
-  .sched-title { font-size: 13px; font-weight: 700; padding: 8px 16px 6px; }
+  .sched-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+  }
+  .sched-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 14px; }
+  .sched-toggle .chev {
+    width: 8px; height: 8px;
+    border-right: 2px solid var(--ink-dim);
+    border-bottom: 2px solid var(--ink-dim);
+    transform: rotate(45deg);
+    margin: -4px 4px 0 0;
+    transition: transform 0.2s ease;
+  }
+  .schedule.open .sched-toggle .chev { transform: rotate(-135deg); margin-top: 4px; }
+  .sched-body { display: none; padding-top: 2px; }
+  .schedule.open .sched-body { display: block; }
   .sched-row {
     display: grid;
     grid-template-columns: 38px 1fr;
@@ -271,7 +278,6 @@
   .sr-day { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); }
   .sched-row.is-today .sr-day { color: var(--ink); }
   .sr-focus { font-size: 14px; font-weight: 700; }
-  .sr-muscles { font-size: 11.5px; color: var(--ink-faint); }
   .sr-time { font-size: 11.5px; color: var(--ink-dim); text-align: right; font-variant-numeric: tabular-nums; }
 
   .foot-note { text-align: center; font-size: 11.5px; color: var(--ink-faint); margin-top: 22px; }
@@ -493,93 +499,18 @@
   .food-target .ft-unit { font-size: 13px; font-weight: 600; color: var(--ink-dim); }
   .food-target .ft-note { margin-left: auto; font-size: 12px; color: var(--ink-faint); }
 
-  .day-plan { position: relative; padding-left: 26px; margin-top: 18px; }
-  .day-plan::before {
-    content: "";
-    position: absolute;
-    left: 6px; top: 8px; bottom: 8px;
-    width: 2px;
-    background: var(--card-line);
-    border-radius: 1px;
-  }
-  .meal { position: relative; margin-bottom: 22px; }
-  .meal:last-child { margin-bottom: 0; }
-  .meal::before {
-    content: "";
-    position: absolute;
-    left: -26px; top: 3px;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 3px solid var(--meal-color);
-    box-sizing: border-box;
-  }
-  .meal.breakfast { --meal-color: var(--push); }
-  .meal.lunch     { --meal-color: var(--run); }
-  .meal.evening   { --meal-color: var(--weight); }
-  .meal.dinner    { --meal-color: var(--pull); }
-
-  .meal-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0 0 9px;
-    line-height: 20px;
-  }
-  .meal-choices {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: stretch;
-    gap: 0;
-  }
-  .meal-choices.single { grid-template-columns: 1fr; }
-  .choice {
-    background: var(--card);
-    border: 1px solid var(--card-line);
-    border-radius: 12px;
-    padding: 12px 13px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.35;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-  }
-  .choice-or {
-    align-self: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--ink-faint);
-    background: var(--bg);
-    border: 1px solid var(--card-line);
-    border-radius: 50%;
-    width: 26px; height: 26px;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 -6px;
-    position: relative;
-    z-index: 1;
-  }
-  .meal-with {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    padding: 5px 10px 5px 6px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--meal-color) 12%, var(--card));
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--ink);
-  }
-  .meal-with .plus {
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--meal-color);
-    color: #FFFFFF;
+  .menu { margin-top: 18px; }
+  .menu-meal { margin-bottom: 20px; }
+  .menu-name {
     font-size: 12px;
     font-weight: 700;
-    display: inline-flex; align-items: center; justify-content: center;
-    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
   }
+  .menu-line { font-size: 16px; font-weight: 600; line-height: 1.5; color: var(--ink); }
+  .menu-or { font-size: 12px; color: var(--ink-faint); margin: 1px 0; }
 </style>
 </head>
 <body>
@@ -624,40 +555,29 @@
       <span class="ft-note">every day</span>
     </div>
 
-    <div class="day-plan">
-      <div class="meal breakfast">
-        <h3 class="meal-title">Breakfast</h3>
-        <div class="meal-choices">
-          <div class="choice">2 bread + egg / paneer bhurji</div>
-          <div class="choice-or">or</div>
-          <div class="choice">Soy paratha + curd</div>
-        </div>
-        <span class="meal-with"><span class="plus">+</span>Coffee</span>
+    <div class="menu">
+      <div class="menu-meal">
+        <div class="menu-name">Breakfast</div>
+        <div class="menu-line">2 bread + egg / paneer bhurji + coffee</div>
+        <div class="menu-or">or</div>
+        <div class="menu-line">Soy paratha + curd + coffee</div>
       </div>
 
-      <div class="meal lunch">
-        <h3 class="meal-title">Lunch</h3>
-        <div class="meal-choices">
-          <div class="choice">2 bread + egg / paneer bhurji</div>
-          <div class="choice-or">or</div>
-          <div class="choice">Rice bowl + curd</div>
-        </div>
-        <span class="meal-with"><span class="plus">+</span>Protein shake</span>
+      <div class="menu-meal">
+        <div class="menu-name">Lunch</div>
+        <div class="menu-line">2 bread + egg / paneer bhurji + protein shake</div>
+        <div class="menu-or">or</div>
+        <div class="menu-line">Rice bowl + curd + protein shake</div>
       </div>
 
-      <div class="meal evening">
-        <h3 class="meal-title">Evening</h3>
-        <div class="meal-choices single">
-          <div class="choice">Coffee</div>
-        </div>
+      <div class="menu-meal">
+        <div class="menu-name">Evening</div>
+        <div class="menu-line">Coffee</div>
       </div>
 
-      <div class="meal dinner">
-        <h3 class="meal-title">Dinner</h3>
-        <div class="meal-choices single">
-          <div class="choice">Grilled chicken + curd</div>
-        </div>
-        <span class="meal-with"><span class="plus">+</span>Chai</span>
+      <div class="menu-meal">
+        <div class="menu-name">Dinner</div>
+        <div class="menu-line">Grilled chicken + curd + chai</div>
       </div>
     </div>
 
@@ -691,7 +611,6 @@
       <div class="rule-icon">✕</div>
       <div>
         <div class="rule-head">No chips</div>
-        <div class="rule-sub">Craving something crunchy?</div>
         <span class="rule-swap">Have roasted chana instead</span>
       </div>
     </div>
@@ -700,14 +619,12 @@
   <!-- WORKOUTS PAGE -->
   <div class="page active" id="workouts">
     <div class="schedule" id="schedule">
-      <div class="sched-title">Every week</div>
+      <button class="sched-toggle" id="sched-toggle" aria-expanded="false" aria-controls="sched-body">
+        <span>Every week</span><span class="chev"></span>
+      </button>
+      <div class="sched-body" id="sched-body"></div>
     </div>
 
-    <div class="legend">
-      <div class="legend-item"><span class="dot push"></span>Chest, shoulders, triceps</div>
-      <div class="legend-item"><span class="dot pull"></span>Back, biceps</div>
-      <div class="legend-item"><span class="dot run"></span>Cardio only</div>
-    </div>
     <div id="months"></div>
     <div class="foot-note">Tap a date to mark it done, tap again to undo.</div>
   </div>
@@ -727,8 +644,6 @@
       </div>
       <div class="chart-legend">
         <span class="chart-legend-item"><span class="chart-swatch actual"></span>Weekly avg</span>
-        <span class="chart-legend-item"><span class="chart-swatch daily"></span>Daily</span>
-        <span class="chart-legend-item"><span class="chart-swatch target"></span>Target</span>
       </div>
       <div id="chart-wrap"></div>
     </div>
@@ -850,8 +765,7 @@
 
       if (dateCursor >= START && dateCursor <= END) {
         const dayEl = document.createElement("div");
-        const type = TYPE_BY_DOW[dateCursor.getDay()];
-        dayEl.className = "day " + type;
+        dayEl.className = "day";
         dayEl.textContent = dateCursor.getDate();
         dayEl.dataset.dayNum = String(dateCursor.getDate());
         if (isSameDay(dateCursor, today)) dayEl.classList.add("today");
@@ -860,12 +774,7 @@
         dayEl.dataset.key = key;
         dayEl.addEventListener("click", () => toggleDay(dayEl, key));
 
-        const tag = document.createElement("span");
-        tag.className = "day-tag " + type;
-        tag.textContent = PLAN_BY_DOW[dateCursor.getDay()].tag;
-
         cell.appendChild(dayEl);
-        cell.appendChild(tag);
       } else {
         const empty = document.createElement("div");
         empty.className = "day empty";
@@ -931,14 +840,20 @@
   // ---------- Today card + weekly schedule ----------
   const DOW_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   (function renderSchedule() {
-    const sched = document.getElementById("schedule");
+    const sched = document.getElementById("sched-body");
+    const wrap = document.getElementById("schedule");
+    const toggle = document.getElementById("sched-toggle");
+    toggle.addEventListener("click", () => {
+      const open = wrap.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
     [1, 2, 3, 4, 5, 6, 0].forEach(dow => {
       const p = PLAN_BY_DOW[dow];
       const row = document.createElement("div");
       row.className = "sched-row " + p.cat + (dow === today.getDay() ? " is-today" : "");
       row.innerHTML =
         '<span class="sr-day">' + DOW_NAMES[dow].slice(0, 3) + '</span>' +
-        '<div><div class="sr-focus">' + p.focus + '</div>' + (p.muscles && p.lift ? '<div class="sr-muscles">' + p.muscles + '</div>' : "") + '</div>';
+        '<div class="sr-focus">' + p.focus + '</div>';
       sched.appendChild(row);
     });
   })();
@@ -965,17 +880,11 @@
     return fmtKey(d);
   }
 
-  // Target line: 89.00 kg on Sep 20, -0.75 kg per week, straight through to Feb 20 2027
-  const START_TARGET = 89.0;
-  const WEEKLY_DROP = 0.75;
-  function targetAtDay(idx) { return START_TARGET - (idx / 7) * WEEKLY_DROP; }
-
   function weekDays(w) {
     const out = [];
     for (let i = w * 7; i < Math.min(w * 7 + 7, TOTAL_DAYS); i++) out.push(i);
     return out;
   }
-  // Target for a week = target at the middle of its logged days (or mid-week if none)
   function weekStats(w) {
     const vals = [];
     const idxs = [];
@@ -986,7 +895,7 @@
     if (!vals.length) return null;
     const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
     const midIdx = idxs.reduce((a, b) => a + b, 0) / idxs.length;
-    return { avg, count: vals.length, midIdx, target: targetAtDay(midIdx) };
+    return { avg, count: vals.length, midIdx };
   }
 
   const todayKey = fmtKey(new Date());
@@ -1048,16 +957,13 @@
 
       let metaHtml;
       if (st) {
-        const vsTarget = st.avg - st.target;
-        const tgtStr = Math.abs(vsTarget) < 0.05 ? "on target"
-          : (vsTarget > 0 ? "+" : "") + vsTarget.toFixed(1) + " vs target";
         let changeStr = "";
         if (prev) {
           const ch = st.avg - prev.avg;
           const cls = ch > 0.04 ? "up" : (ch < -0.04 ? "down" : "");
           changeStr = '<span class="' + cls + '">' + (ch > 0 ? "+" : "") + ch.toFixed(2) + " kg</span>, ";
         }
-        metaHtml = changeStr + st.count + "/" + days.length + " days, " + tgtStr;
+        metaHtml = changeStr + st.count + "/" + days.length + " days";
       } else {
         metaHtml = "no weigh-ins yet";
       }
@@ -1128,25 +1034,16 @@
       if (st) weeks.push({ w, ...st });
     }
 
-    // Stat: latest weekly average vs target
-    if (!weeks.length) {
-      weightStatEl.textContent = "Target starts at " + START_TARGET.toFixed(2) + " kg";
-    } else {
-      const last = weeks[weeks.length - 1];
-      const diff = last.avg - last.target;
-      weightStatEl.textContent = "Avg " + last.avg.toFixed(1) + " kg, " + (Math.abs(diff) < 0.05
-        ? "on target"
-        : (diff > 0 ? "+" : "") + diff.toFixed(1) + " vs target");
-    }
+    // Stat: latest weekly average
+    weightStatEl.textContent = weeks.length
+      ? "Latest avg " + weeks[weeks.length - 1].avg.toFixed(1) + " kg"
+      : "No weeks logged yet";
 
-    // Axis range: target line, widened if logged weights fall outside it
-    const tStart = targetAtDay(0), tEnd = targetAtDay(TOTAL_DAYS - 1);
-    const allVals = Object.keys(data.weights)
-      .filter(k => { const i = dayIdx(k); return i >= 0 && i < TOTAL_DAYS; })
-      .map(k => data.weights[k]);
-    const yMin = Math.min(tEnd, ...allVals);
-    const yMax = Math.max(tStart, ...allVals);
-    const pad = Math.max((yMax - yMin) * 0.08, 0.6);
+    // Y range from the weekly averages only
+    const avgs = weeks.map(wk => wk.avg);
+    const yMin = avgs.length ? Math.min(...avgs) : 80;
+    const yMax = avgs.length ? Math.max(...avgs) : 90;
+    const pad = Math.max((yMax - yMin) * 0.2, 0.8);
     const yLo = yMin - pad;
     const yHi = yMax + pad;
 
@@ -1154,28 +1051,18 @@
     const plotW = W - marginL - marginR;
     const plotH = H - marginT - marginB;
 
-    function xAt(idx) { return marginL + (idx / (TOTAL_DAYS - 1)) * plotW; }
+    // One slot per week, left to right
+    function xAtWeek(w) { return marginL + ((w + 0.5) / WEEK_COUNT) * plotW; }
     function yAt(v) { return marginT + plotH - ((v - yLo) / (yHi - yLo)) * plotH; }
 
-    const targetPath = "M" + xAt(0).toFixed(1) + "," + yAt(tStart).toFixed(1) +
-      " L" + xAt(TOTAL_DAYS - 1).toFixed(1) + "," + yAt(tEnd).toFixed(1);
-
-    // Faint daily dots
-    let dailyDots = "";
-    Object.keys(data.weights).forEach(k => {
-      const i = dayIdx(k);
-      if (i < 0 || i >= TOTAL_DAYS) return;
-      dailyDots += '<circle cx="' + xAt(i).toFixed(1) + '" cy="' + yAt(data.weights[k]).toFixed(1) + '" r="1.8" fill="var(--weight)" opacity="0.28" />';
-    });
-
-    // Weekly average line, placed at the middle of each week's logged days; breaks across empty weeks
+    // Weekly average line; breaks across weeks with no weigh-ins
     let actualPath = "";
     let actualPoints = "";
     let prevW = null;
     weeks.forEach(wk => {
-      const x = xAt(wk.midIdx), y = yAt(wk.avg);
+      const x = xAtWeek(wk.w), y = yAt(wk.avg);
       actualPath += (prevW !== null && wk.w === prevW + 1 ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1) + " ";
-      actualPoints += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.2" fill="var(--weight)" />';
+      actualPoints += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.4" fill="var(--weight)" />';
       prevW = wk.w;
     });
 
@@ -1183,7 +1070,7 @@
     const Y_TICKS = 4;
     let yGrid = "";
     for (let t = 0; t < Y_TICKS; t++) {
-      const val = yHi - pad - (t / (Y_TICKS - 1)) * (yHi - yLo - 2 * pad);
+      const val = yHi - (t / (Y_TICKS - 1)) * (yHi - yLo);
       const y = yAt(val);
       yGrid += `
         <line x1="${marginL}" y1="${y.toFixed(1)}" x2="${W - marginR}" y2="${y.toFixed(1)}" stroke="#EDECE7" stroke-width="1"/>
@@ -1191,26 +1078,23 @@
       `;
     }
 
-    // X-axis: 5 evenly spaced date labels
-    const X_TICKS = 5;
+    // X-axis: week numbers
     let xTicks = "";
-    for (let t = 0; t < X_TICKS; t++) {
-      const idx = Math.round((t / (X_TICKS - 1)) * (TOTAL_DAYS - 1));
-      const x = xAt(idx);
-      const anchor = t === 0 ? "start" : (t === X_TICKS - 1 ? "end" : "middle");
+    [0, 5, 10, 15, WEEK_COUNT - 1].forEach((w, t, arr) => {
+      const x = xAtWeek(w);
+      const anchor = t === 0 ? "start" : (t === arr.length - 1 ? "end" : "middle");
+      const tx = t === 0 ? marginL : (t === arr.length - 1 ? W - marginR : x);
       xTicks += `
         <line x1="${x.toFixed(1)}" y1="${marginT + plotH}" x2="${x.toFixed(1)}" y2="${(marginT + plotH + 3).toFixed(1)}" stroke="#C9C8C2" stroke-width="1"/>
-        <text x="${x.toFixed(1)}" y="${H - 6}" text-anchor="${anchor}" font-size="8.5" fill="#8B8D95">${fmtDateShort(keyAt(idx))}</text>
+        <text x="${tx.toFixed(1)}" y="${H - 6}" text-anchor="${anchor}" font-size="8.5" fill="#8B8D95">Wk ${w + 1}</text>
       `;
-    }
+    });
 
     chartWrap.innerHTML = `
       <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
         ${yGrid}
         <line x1="${marginL}" y1="${marginT}" x2="${marginL}" y2="${marginT + plotH}" stroke="#D8D7D1" stroke-width="1"/>
         <line x1="${marginL}" y1="${marginT + plotH}" x2="${W - marginR}" y2="${marginT + plotH}" stroke="#D8D7D1" stroke-width="1"/>
-        <path d="${targetPath}" fill="none" stroke="#A1A3AA" stroke-width="1.6" stroke-dasharray="4 3" stroke-linecap="round"/>
-        ${dailyDots}
         <path d="${actualPath}" fill="none" stroke="var(--weight)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
         ${actualPoints}
         ${xTicks}
