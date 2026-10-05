@@ -508,6 +508,18 @@
   }
   .menu-line { font-size: 16px; font-weight: 600; line-height: 1.5; color: var(--ink); }
   .menu-or { font-size: 12px; color: var(--ink-faint); margin: 1px 0; }
+
+  /* ---- Today on the weekly card ---- */
+  .sched-today { margin-left: auto; margin-right: 12px; font-size: 13px; font-weight: 700; color: var(--ink-dim); }
+  .sched-today.push { color: var(--push); }
+  .sched-today.pull { color: var(--pull); }
+  .sched-today.run  { color: var(--run); }
+
+  /* ---- Exercises page ---- */
+  .ex-section { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); margin: 30px 2px 12px; }
+  .ex-section.first { margin-top: 4px; }
+  .ex-group { font-size: 17px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+  .ex-line { font-size: 14px; font-weight: 500; line-height: 1.6; color: var(--ink-dim); }
 </style>
 </head>
 <body>
@@ -530,6 +542,7 @@
     <div class="tab" data-page="food">Food</div>
     <div class="tab active" data-page="workouts">Workouts</div>
     <div class="tab" data-page="weight">Weight</div>
+    <div class="tab" data-page="exercises">Exercises</div>
   </div>
 
   <div id="sync-note" style="font-size:11px; color:var(--ink-faint); text-align:right; margin-bottom:14px; cursor:pointer; user-select:none;">
@@ -617,7 +630,7 @@
   <div class="page active" id="workouts">
     <div class="schedule" id="schedule">
       <button class="sched-toggle" id="sched-toggle" aria-expanded="false" aria-controls="sched-body">
-        <span>Every week</span><span class="chev"></span>
+        <span>Every week</span><span class="sched-today" id="sched-today"></span><span class="chev"></span>
       </button>
       <div class="sched-body" id="sched-body"></div>
     </div>
@@ -649,6 +662,46 @@
     <div class="foot-note">Weigh in every day after coming back from the gym, not in the morning.</div>
   </div>
 
+  <!-- EXERCISES PAGE -->
+  <div class="page" id="exercises">
+    <div class="ex-section first">Push</div>
+    <div class="menu">
+      <div class="menu-meal">
+        <div class="ex-group">Chest</div>
+        <div class="ex-line">1. Incline DB Press</div>
+        <div class="ex-line">2. Bench Press (Smith machine)</div>
+        <div class="ex-line">3. Pec Dec Fly</div>
+      </div>
+      <div class="menu-meal">
+        <div class="ex-group">Shoulders</div>
+        <div class="ex-line">1. Lateral Raises</div>
+        <div class="ex-line">2. Overhead Press</div>
+        <div class="ex-line">3. Barbell Upright Row</div>
+      </div>
+      <div class="menu-meal">
+        <div class="ex-group">Triceps</div>
+        <div class="ex-line">1. Cable Pushdown</div>
+        <div class="ex-line">2. Weighted Bench Dip</div>
+      </div>
+    </div>
+
+    <div class="ex-section">Pull</div>
+    <div class="menu">
+      <div class="menu-meal">
+        <div class="ex-group">Biceps</div>
+        <div class="ex-line">1. Incline DB Curl</div>
+        <div class="ex-line">2. Preacher Curl</div>
+        <div class="ex-line">3. Hammer Curl</div>
+      </div>
+      <div class="menu-meal">
+        <div class="ex-group">Back</div>
+        <div class="ex-line">1. Wide Close Grip Pull</div>
+        <div class="ex-line">2. Lat Pulldown</div>
+        <div class="ex-line">3. T-Bar Row</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -661,14 +714,15 @@
 
   // Weekly plan. cat drives the color: push = chest/shoulders/triceps, pull = back/biceps, run = cardio only.
   const PLAN_BY_DOW = {
-    1: { focus: "Chest",               muscles: "",                          tag: "Chest",  cat: "push", lift: 30 },
-    2: { focus: "Biceps",              muscles: "",                          tag: "Bi",     cat: "pull", lift: 30 },
-    3: { focus: "Shoulders + triceps", muscles: "",                          tag: "Sh+Tri", cat: "push", lift: 30 },
-    4: { focus: "Back",                muscles: "",                          tag: "Back",   cat: "pull", lift: 30 },
+    1: { focus: "Cardio only",         muscles: "No lifting today",          tag: "Cardio", cat: "run",  lift: 0  },
+    2: { focus: "Cardio only",         muscles: "No lifting today",          tag: "Cardio", cat: "run",  lift: 0  },
+    3: { focus: "Push + Cardio",       muscles: "Chest, shoulders, triceps", tag: "Push",   cat: "push", lift: 30 },
+    4: { focus: "Pull + Cardio",       muscles: "Back, biceps",              tag: "Pull",   cat: "pull", lift: 30 },
     5: { focus: "Cardio only",         muscles: "No lifting today",          tag: "Cardio", cat: "run",  lift: 0  },
-    6: { focus: "Push day",            muscles: "Chest, shoulders, triceps", tag: "Push",   cat: "push", lift: 30 },
-    0: { focus: "Pull day",            muscles: "Back, biceps",              tag: "Pull",   cat: "pull", lift: 30 }
+    6: { focus: "Push only",           muscles: "Chest, shoulders, triceps", tag: "Push",   cat: "push", lift: 30 },
+    0: { focus: "Pull only",           muscles: "Back, biceps",              tag: "Pull",   cat: "pull", lift: 30 }
   };
+
   const TYPE_BY_DOW = {};
   Object.keys(PLAN_BY_DOW).forEach(k => { TYPE_BY_DOW[k] = PLAN_BY_DOW[k].cat; });
 
@@ -844,6 +898,10 @@
       const open = wrap.classList.toggle("open");
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
     });
+    const todayPlan = PLAN_BY_DOW[today.getDay()];
+    const todayEl = document.getElementById("sched-today");
+    todayEl.textContent = "Today: " + todayPlan.focus;
+    todayEl.classList.add(todayPlan.cat);
     [1, 2, 3, 4, 5, 6, 0].forEach(dow => {
       const p = PLAN_BY_DOW[dow];
       const row = document.createElement("div");
